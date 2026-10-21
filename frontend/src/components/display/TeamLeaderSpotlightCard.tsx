@@ -234,11 +234,12 @@ export const TeamLeaderSpotlightCard: React.FC<TeamLeaderSpotlightCardProps> = (
                     src={leader?.imageUrl || ''}
                     alt={leader?.fullName || winner?.teamName || 'Team Leader'}
                     rank={1}
-                    className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[360px] lg:h-[360px] xl:w-[400px] xl:h-[400px] rounded-2xl sm:rounded-[22px] object-cover"
+                    fitMode="smart-portrait"
+                    className="w-64 sm:w-72 md:w-80 lg:w-[350px] xl:w-[390px] aspect-[4/5] rounded-2xl sm:rounded-[22px]"
                   />
                 </div>
               ) : (
-                <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[360px] lg:h-[360px] rounded-3xl bg-navy-900/90 border-2 border-dashed border-amber-400/60 flex flex-col items-center justify-center p-6 text-center shadow-xl">
+                <div className="w-64 sm:w-72 md:w-80 lg:w-[350px] xl:w-[390px] aspect-[4/5] rounded-3xl bg-navy-900/90 border-2 border-dashed border-amber-400/60 flex flex-col items-center justify-center p-6 text-center shadow-xl">
                   <Users className="w-16 h-16 text-amber-400/70 mb-3" />
                   <p className="text-base font-bold text-white uppercase font-display">
                     Leader Not Configured

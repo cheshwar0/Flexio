@@ -18,7 +18,7 @@ export async function uploadEmployeeImage(
           folder: 'flexio-performers',
           public_id: `emp_${employeeId.toLowerCase()}_${Date.now()}`,
           transformation: [
-            { width: 800, height: 800, crop: 'fill', gravity: 'face' },
+            { width: 1200, height: 1500, crop: 'limit' },
             { quality: 'auto', fetch_format: 'auto' },
           ],
         },

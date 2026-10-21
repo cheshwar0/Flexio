@@ -71,7 +71,8 @@ export const PerformerSpotlightCard: React.FC<PerformerSpotlightCardProps> = ({
               src={imageUrl}
               alt={fullName}
               rank={rank}
-              className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[380px] lg:h-[380px] xl:w-[420px] xl:h-[420px] rounded-2xl md:rounded-3xl object-cover shadow-2xl transition-all duration-500"
+              fitMode="smart-portrait"
+              className="w-64 sm:w-72 md:w-80 lg:w-[350px] xl:w-[390px] aspect-[4/5] rounded-2xl md:rounded-3xl shadow-2xl transition-all duration-500"
             />
           </div>
         </div>
