@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #030712;
+    color: #F8FAFC;
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* TV and Glassmorphism styling */
+.glass-panel {
+  background: rgba(13, 22, 43, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-gold {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(13, 22, 43, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  box-shadow: 0 0 35px -5px rgba(234, 179, 8, 0.25);
+}
+
+.glass-panel-silver {
+  background: linear-gradient(135deg, rgba(203, 213, 225, 0.1) 0%, rgba(13, 22, 43, 0.85) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(203, 213, 225, 0.35);
+  box-shadow: 0 0 25px -5px rgba(203, 213, 225, 0.15);
+}
+
+.glass-panel-bronze {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(13, 22, 43, 0.85) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  box-shadow: 0 0 25px -5px rgba(217, 119, 6, 0.15);
+}
+
+/* Gold Gradient Text */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FDE047 30%, #F59E0B 70%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle Shimmer Effect */
+@keyframes goldShimmer {
+  0% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+.gold-pulse-glow {
+  animation: goldShimmer 4s ease-in-out infinite;
+}
+
+@keyframes progressCountdown {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes spotlightEnter {
+  0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.spotlight-card-enter {
+  animation: spotlightEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Smooth horizontal scroll behavior */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Dark theme browser autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #0b1528 inset !important;
+  box-shadow: 0 0 0px 1000px #0b1528 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
