@@ -36,6 +36,20 @@ export async function loginAdmin(data: { email: string; password: string }) {
   return response.data;
 }
 
+export async function resetAdminPassword(data: { email: string; newPassword: string }) {
+  const response = await apiClient.post<{
+    success: boolean;
+    token: string;
+    admin: AdminUser;
+    message: string;
+  }>('/auth/reset-password', data);
+  if (response.data.token && response.data.admin) {
+    localStorage.setItem('flexio_admin_token', response.data.token);
+    localStorage.setItem('flexio_admin_user', JSON.stringify(response.data.admin));
+  }
+  return response.data;
+}
+
 export async function getAdminProfile() {
   const response = await apiClient.get<{ success: boolean; admin: AdminUser }>('/auth/me');
   return response.data.admin;

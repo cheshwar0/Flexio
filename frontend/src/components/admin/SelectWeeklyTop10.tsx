@@ -377,7 +377,7 @@ export const SelectWeeklyTop10: React.FC = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, ID, or title..."
+                placeholder="Search by name, team, or title..."
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-navy-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:border-amber-400"
               />
             </div>
@@ -445,9 +445,6 @@ export const SelectWeeklyTop10: React.FC = () => {
                           <p className="text-[11px] text-slate-400 truncate">
                             {emp.team} • {emp.designation}
                           </p>
-                          <span className="text-[10px] font-mono text-amber-300 font-bold">
-                            {emp.employeeId}
-                          </span>
                         </div>
                       </div>
 
@@ -578,9 +575,6 @@ export const SelectWeeklyTop10: React.FC = () => {
                             <span className="font-semibold text-amber-300">{performer.team}</span> •{' '}
                             {performer.designation}
                           </p>
-                          <span className="text-[10px] font-mono text-slate-400">
-                            {performer.employeeId}
-                          </span>
                         </div>
                       </div>
 

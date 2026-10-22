@@ -468,7 +468,7 @@ export const WeekManager: React.FC = () => {
                       <div>
                         <span className="font-bold text-white text-sm block">{item.fullName}</span>
                         <span className="text-xs text-slate-400 block">
-                          {item.designation} • {item.department} ({item.employeeId})
+                          {item.designation} • {item.department}
                         </span>
                       </div>
                     </div>

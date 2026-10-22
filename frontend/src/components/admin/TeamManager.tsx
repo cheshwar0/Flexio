@@ -64,7 +64,8 @@ export const TeamManager: React.FC = () => {
         slotNumber: idx + 1,
         teamId: t.teamId || `TEAM-0${idx + 1}`,
         name: t.name.trim(),
-        description: t.description?.trim() || '',
+        description: t.slogan?.trim() || t.description?.trim() || '',
+        slogan: t.slogan?.trim() || t.description?.trim() || '',
         teamLeaderEmployeeId: t.teamLeaderEmployeeId || null,
         active: t.active !== false,
       }));
@@ -218,9 +219,6 @@ export const TeamManager: React.FC = () => {
                             <h4 className="text-sm font-bold text-white truncate">
                               {leader.fullName}
                             </h4>
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-navy-950 text-amber-300 border border-slate-700">
-                              {leader.employeeId}
-                            </span>
                           </div>
                           <p className="text-xs text-amber-200/90 truncate font-medium">
                             {leader.designation}
@@ -251,7 +249,7 @@ export const TeamManager: React.FC = () => {
                           .filter((e) => e.active)
                           .map((emp) => (
                             <option key={emp.employeeId} value={emp.employeeId}>
-                              {emp.fullName} ({emp.employeeId}) — {emp.team || emp.department} • {emp.designation}
+                              {emp.fullName} — {emp.team || emp.department} • {emp.designation}
                             </option>
                           ))}
                       </select>
@@ -261,17 +259,25 @@ export const TeamManager: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Team Purpose / Scope (Optional) */}
+                  {/* Team Slogan / Motto (Displayed on TV Screen with each Team Member) */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                      Team Scope / Mission (Optional)
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300">
+                        Team Slogan / Motto
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">Displayed with each member on TV</span>
+                    </div>
                     <input
                       type="text"
-                      value={team.description || ''}
-                      onChange={(e) => handleDescChange(idx, e.target.value)}
-                      placeholder="e.g. Core Enterprise Solutions & Cloud Infrastructure"
-                      className="w-full px-3 py-2 rounded-xl bg-navy-900/60 border border-slate-800 text-slate-300 text-xs focus:border-amber-400"
+                      value={team.slogan !== undefined ? team.slogan : (team.description || '')}
+                      onChange={(e) => {
+                        const updated = [...teams];
+                        updated[idx].slogan = e.target.value;
+                        updated[idx].description = e.target.value;
+                        setTeams(updated);
+                      }}
+                      placeholder="e.g. Driving excellence through dedication, teamwork, and innovation."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-slate-700 text-amber-200 text-xs font-medium focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                     />
                   </div>
                 </div>

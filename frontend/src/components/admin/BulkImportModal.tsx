@@ -57,8 +57,8 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
     const deptIdx = headers.indexOf('department');
     const imgIdx = headers.indexOf('imageurl');
 
-    if (idIdx === -1 || nameIdx === -1 || teamIdx === -1 || desigIdx === -1) {
-      alert('CSV must contain employeeId, fullName, team, and designation columns.');
+    if (nameIdx === -1 || teamIdx === -1 || desigIdx === -1) {
+      alert('CSV must contain fullName, team, and designation columns.');
       return;
     }
 
@@ -70,7 +70,11 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
       // Regex handling quoted commas
       const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((c) => c.replace(/^"|"$/g, '').trim());
 
-      const employeeId = (cols[idIdx] || '').toUpperCase();
+      let employeeId = idIdx !== -1 ? (cols[idIdx] || '').toUpperCase() : '';
+      if (!employeeId) {
+        employeeId = `EMP-${1001 + existingIds.size + i}`;
+      }
+
       const fullName = cols[nameIdx] || '';
       const team = cols[teamIdx] || '';
       const designation = cols[desigIdx] || '';
@@ -80,23 +84,21 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
       let isValid = true;
       let error = '';
 
-      if (!employeeId || !fullName || !team || !designation) {
+      if (!fullName || !team || !designation) {
         isValid = false;
-        error = 'Missing required fields (ID, name, team, or designation)';
+        error = 'Missing required fields (Name, team, or designation)';
       } else if (seenInBatch.has(employeeId)) {
         isValid = false;
-        error = `Duplicate ID ${employeeId} in CSV file`;
+        error = `Duplicate employee in CSV file`;
       } else if (existingIds.has(employeeId)) {
         isValid = false;
-        error = `Employee ID ${employeeId} is already registered in directory`;
+        error = `Employee is already registered in directory`;
       } else if (validTeamNames.size > 0 && !validTeamNames.has(team.toLowerCase())) {
         isValid = false;
         error = `Team "${team}" does not match any of the 8 configured company teams`;
       }
 
-      if (employeeId) {
-        seenInBatch.add(employeeId);
-      }
+      seenInBatch.add(employeeId);
 
       rows.push({
         rowNum: i,
@@ -181,7 +183,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
               <div>
                 <h4 className="text-sm font-bold text-white">Need the CSV Template?</h4>
                 <p className="text-xs text-slate-400">
-                  Includes formatted columns: employeeId, fullName, team, designation, department, imageUrl.
+                  Includes formatted columns: fullName, team, designation, department, imageUrl.
                 </p>
               </div>
             </div>
@@ -245,7 +247,6 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
                   <thead className="bg-navy-900 text-slate-400 uppercase tracking-wider sticky top-0 border-b border-slate-800">
                     <tr>
                       <th className="px-4 py-2.5">Status</th>
-                      <th className="px-4 py-2.5">ID</th>
                       <th className="px-4 py-2.5">Name</th>
                       <th className="px-4 py-2.5">Team</th>
                       <th className="px-4 py-2.5">Designation</th>
@@ -268,7 +269,6 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-2 font-mono text-amber-300 font-bold">{r.employeeId}</td>
                         <td className="px-4 py-2 font-semibold text-white">{r.fullName}</td>
                         <td className="px-4 py-2">{r.team}</td>
                         <td className="px-4 py-2">{r.designation}</td>

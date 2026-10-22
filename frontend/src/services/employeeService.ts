@@ -14,7 +14,7 @@ export async function fetchEmployees(params?: {
 }
 
 export async function createEmployee(data: {
-  employeeId: string;
+  employeeId?: string;
   fullName: string;
   team: string;
   designation: string;
@@ -27,6 +27,11 @@ export async function createEmployee(data: {
 
 export async function updateEmployee(id: string, data: Partial<Employee>) {
   const response = await apiClient.put<{ success: boolean; employee: Employee; message: string }>(`/employees/${id}`, data);
+  return response.data;
+}
+
+export async function deleteEmployee(id: string) {
+  const response = await apiClient.delete<{ success: boolean; message: string }>(`/employees/${id}`);
   return response.data;
 }
 

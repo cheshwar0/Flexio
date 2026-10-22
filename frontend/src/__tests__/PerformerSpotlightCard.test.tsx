@@ -32,14 +32,14 @@ describe('PerformerSpotlightCard Component', () => {
   it('renders performer in full spotlight with clean portrait, team badge, and thought box', () => {
     render(<PerformerSpotlightCard performer={mockRank1} totalPerformers={10} intervalMs={5000} />);
 
-    // Name, role, team, and ID
+    // Name, role, and team (no employeeId)
     expect(screen.getByText('Sophia Montgomery')).toBeDefined();
     expect(screen.getByText('Senior Enterprise Account Executive')).toBeDefined();
     expect(screen.getByText(/TEAM: Sales & Revenue/i)).toBeDefined();
-    expect(screen.getByText('EMP-1001')).toBeDefined();
+    expect(screen.queryByText('EMP-1001')).toBeNull();
 
-    // Thought Box
-    expect(screen.getByText('Thought of the Week')).toBeDefined();
+    // Slogan Box
+    expect(screen.getByText(/TEAM SLOGAN/i)).toBeDefined();
     expect(screen.getByText(/Closed \$2.4M enterprise deal/i)).toBeDefined();
 
     // Assert badges and score are removed

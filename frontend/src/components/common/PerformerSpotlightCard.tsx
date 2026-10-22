@@ -64,7 +64,7 @@ export const PerformerSpotlightCard: React.FC<PerformerSpotlightCardProps> = ({
           <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
         )}
 
-        {/* LEFT COLUMN: Hero Portrait */}
+        {/* LEFT COLUMN: Hero Portrait (Enlarged frame, zero-cropping adaptive) */}
         <div className="flex flex-col items-center justify-center shrink-0">
           <div className="relative">
             <AvatarWithFallback
@@ -72,48 +72,44 @@ export const PerformerSpotlightCard: React.FC<PerformerSpotlightCardProps> = ({
               alt={fullName}
               rank={rank}
               fitMode="smart-portrait"
-              className="w-64 sm:w-72 md:w-80 lg:w-[350px] xl:w-[390px] aspect-[4/5] rounded-2xl md:rounded-3xl shadow-2xl transition-all duration-500"
+              className="w-72 sm:w-80 md:w-96 lg:w-[440px] xl:w-[500px] h-[360px] sm:h-[420px] md:h-[480px] lg:h-[530px] xl:h-[560px] rounded-3xl shadow-2xl transition-all duration-500"
             />
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Badges, Name, Designation & Full-Height Thought Box */}
-        <div className="flex-1 flex flex-col justify-between py-1 text-center lg:text-left">
-          {/* Top section: Badges, Full Name, Designation */}
-          <div className="space-y-3">
-            {/* Top Badges row: TEAM badge + EMP ID badge */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3">
-              <span className="px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold uppercase tracking-wider shadow-sm">
-                TEAM: {performer.team || department}
+        {/* RIGHT COLUMN: Badges, Uppercase Name, Designation & Compact Team Slogan Box */}
+        <div className="flex-1 flex flex-col justify-between py-2 text-center lg:text-left gap-4">
+          {/* Top section: Team Badge (Enlarged & Wider), Name in UPPERCASE, Designation */}
+          <div className="space-y-4">
+            {/* Team badge (Enlarged with wider padding, NO employee ID) */}
+            <div className="flex items-center justify-center lg:justify-start">
+              <span className="px-5 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 border-2 border-amber-400/60 text-amber-300 text-sm sm:text-base md:text-lg font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 inline-flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                <span>TEAM: {performer.team || department}</span>
               </span>
-              {employeeId && (
-                <span className="px-3 py-1.5 rounded-full bg-navy-900/90 border border-slate-700/80 text-amber-300/90 text-xs sm:text-sm font-mono font-bold tracking-wider shadow-sm">
-                  {employeeId}
-                </span>
-              )}
             </div>
 
-            {/* Employee Full Name */}
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight font-display drop-shadow-md leading-tight">
+            {/* Employee Full Name in ALL CAPS & Increased Font Size */}
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white tracking-tight font-display uppercase drop-shadow-lg leading-tight">
               {fullName}
             </h2>
 
             {/* Designation */}
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-300 tracking-wide">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-300 tracking-wide">
               {designation}
             </p>
           </div>
 
-          {/* Bottom section: Thought Box for this Image (Fills vertical space smoothly) */}
-          <div className="flex-1 min-h-[140px] flex flex-col justify-center p-5 sm:p-6 lg:p-8 rounded-2xl bg-navy-900/90 border border-slate-700/80 shadow-lg mt-4 lg:mt-6 text-left relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-2.5 text-amber-400">
-              <Quote className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400/20" />
-              <span className="text-[11px] sm:text-xs uppercase tracking-widest font-bold">
-                Thought of the Week
+          {/* Bottom section: Compact Team Slogan Box (Decreased height, per-team slogan) */}
+          <div className="rounded-2xl p-4 sm:p-5 bg-navy-900/90 border border-amber-500/30 shadow-lg text-left relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-1.5 text-amber-400">
+              <Quote className="w-4 h-4 fill-amber-400/20 shrink-0" />
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest font-black text-amber-300">
+                TEAM SLOGAN • {performer.team || department}
               </span>
             </div>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 italic font-medium leading-relaxed">
-              "{achievementDescription || 'Driving excellence through dedication, teamwork, and innovation.'}"
+            <p className="text-sm sm:text-base md:text-lg text-slate-100 italic font-medium leading-relaxed">
+              "{performer.teamSlogan || achievementDescription || 'Driving excellence through dedication, teamwork, and innovation.'}"
             </p>
           </div>
         </div>

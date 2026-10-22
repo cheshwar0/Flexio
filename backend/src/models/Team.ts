@@ -5,6 +5,7 @@ export interface ITeam extends Document {
   slotNumber: number; // 1 to 8
   name: string;
   description?: string;
+  slogan?: string;
   teamLeaderEmployeeId?: string | null; // References Employee.employeeId
   active: boolean;
   createdAt: Date;
@@ -32,6 +33,11 @@ const TeamSchema = new Schema<ITeam>(
       trim: true,
     },
     description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    slogan: {
       type: String,
       default: '',
       trim: true,

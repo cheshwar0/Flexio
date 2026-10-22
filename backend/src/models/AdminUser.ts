@@ -3,7 +3,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IAdminUser extends Document {
   name: string;
   email: string;
-  passwordHash: string;
+  password?: string;
+  passwordHash?: string;
   role: 'admin' | 'superadmin';
   createdAt: Date;
   updatedAt: Date;
@@ -24,9 +25,13 @@ const AdminUserSchema = new Schema<IAdminUser>(
       trim: true,
       index: true,
     },
+    password: {
+      type: String,
+      default: '',
+    },
     passwordHash: {
       type: String,
-      required: [true, 'Password hash is required'],
+      default: '',
     },
     role: {
       type: String,

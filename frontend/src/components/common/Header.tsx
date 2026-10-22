@@ -19,7 +19,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   companyName = 'FLEXIO',
   companyLogoUrl = '/flexio-logo.png',
-  companySubtitle = 'REDGEINE TECHNOLOGY',
+  companySubtitle = 'REDGENIE TECHNOLOGIES PVT.LTD',
   presentedBy = 'Alpha Team',
   weekTitle = 'WEEKLY LEADERBOARD',
   weekStartDate,

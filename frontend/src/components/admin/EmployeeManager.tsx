@@ -3,6 +3,7 @@ import {
   Search,
   Plus,
   Edit2,
+  Trash2,
   Power,
   Upload,
   AlertCircle,
@@ -15,6 +16,7 @@ import {
   fetchEmployees,
   createEmployee,
   updateEmployee,
+  deleteEmployee,
   toggleEmployeeStatus,
   uploadEmployeePhoto,
 } from '../../services/employeeService.js';
@@ -37,6 +39,8 @@ export const EmployeeManager: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [photoTarget, setPhotoTarget] = useState<Employee | null>(null);
   const [confirmToggle, setConfirmToggle] = useState<Employee | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Employee | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form Fields
   const [formEmployeeId, setFormEmployeeId] = useState('');
@@ -101,6 +105,7 @@ export const EmployeeManager: React.FC = () => {
 
   const handleOpenEdit = (emp: Employee) => {
     setEditingEmployee(emp);
+    setFormEmployeeId(emp.employeeId);
     setFormFullName(emp.fullName);
     setFormTeam(emp.team || (teams.length > 0 ? teams[0].name : ''));
     setFormDesignation(emp.designation);
@@ -116,10 +121,10 @@ export const EmployeeManager: React.FC = () => {
     try {
       if (editingEmployee) {
         await updateEmployee(editingEmployee._id, {
-          fullName: formFullName,
+          fullName: formFullName.trim(),
           team: formTeam,
-          designation: formDesignation,
-          department: formDepartment || formTeam,
+          designation: formDesignation.trim(),
+          department: (formDepartment || formTeam).trim(),
           imageUrl: formImageUrl || undefined,
         });
 
@@ -132,11 +137,10 @@ export const EmployeeManager: React.FC = () => {
         setEditingEmployee(null);
       } else {
         const res = await createEmployee({
-          employeeId: formEmployeeId,
-          fullName: formFullName,
+          fullName: formFullName.trim(),
           team: formTeam,
-          designation: formDesignation,
-          department: formDepartment || formTeam,
+          designation: formDesignation.trim(),
+          department: (formDepartment || formTeam).trim(),
           imageUrl: formImageUrl || undefined,
         });
 
@@ -158,6 +162,31 @@ export const EmployeeManager: React.FC = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteEmployee(confirmDelete._id);
+      setMessage({
+        type: 'success',
+        text: `Employee ${confirmDelete.fullName} permanently deleted from directory.`,
+      });
+      const deletedId = confirmDelete._id;
+      setConfirmDelete(null);
+      if (editingEmployee && editingEmployee._id === deletedId) {
+        setEditingEmployee(null);
+      }
+      loadData();
+    } catch (err: any) {
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.message || err.message || 'Failed to delete employee.',
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -269,7 +298,7 @@ export const EmployeeManager: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by employee name, ID, team, or designation..."
+            placeholder="Search by employee name, team, or designation..."
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-navy-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
@@ -300,7 +329,6 @@ export const EmployeeManager: React.FC = () => {
             <thead className="bg-navy-900/90 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
                 <th className="px-6 py-4">Employee</th>
-                <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Team</th>
                 <th className="px-6 py-4">Designation</th>
                 <th className="px-6 py-4">Status</th>
@@ -310,13 +338,13 @@ export const EmployeeManager: React.FC = () => {
             <tbody className="divide-y divide-slate-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-slate-500">
+                  <td colSpan={5} className="text-center py-8 text-slate-500">
                     Loading permanent directory...
                   </td>
                 </tr>
               ) : filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-slate-500">
+                  <td colSpan={5} className="text-center py-8 text-slate-500">
                     No employees found matching filter criteria.
                   </td>
                 </tr>
@@ -332,9 +360,6 @@ export const EmployeeManager: React.FC = () => {
                       <div>
                         <span className="font-bold text-white block">{emp.fullName}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-amber-300 font-bold">
-                      {emp.employeeId}
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium text-xs">
@@ -385,6 +410,13 @@ export const EmployeeManager: React.FC = () => {
                         >
                           <Power className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => setConfirmDelete(emp)}
+                          title="Delete Employee Permanently"
+                          className="p-2 rounded-lg bg-navy-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -417,22 +449,6 @@ export const EmployeeManager: React.FC = () => {
             </p>
 
             <form onSubmit={handleSaveEmployee} className="space-y-4">
-              {!editingEmployee && (
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
-                    Employee ID
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formEmployeeId}
-                    onChange={(e) => setFormEmployeeId(e.target.value)}
-                    placeholder="e.g. EMP-1013"
-                    className="w-full px-4 py-2.5 rounded-xl bg-navy-900 border border-slate-700 text-white font-mono text-sm focus:border-amber-400 uppercase"
-                  />
-                </div>
-              )}
-
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
                   Full Name
@@ -557,31 +573,46 @@ export const EmployeeManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setEditingEmployee(null);
-                  }}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-navy-950 font-bold text-sm tracking-wide shadow flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-navy-950 border-t-transparent rounded-full animate-spin" />
-                      <span>Saving to Cloudinary...</span>
-                    </>
-                  ) : (
-                    <span>{editingEmployee ? 'Update Details' : 'Register Employee'}</span>
-                  )}
-                </button>
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                {editingEmployee ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(editingEmployee)}
+                    className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 text-xs font-bold flex items-center gap-1.5 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Employee</span>
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingEmployee(null);
+                    }}
+                    className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-navy-950 font-bold text-sm tracking-wide shadow flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-navy-950 border-t-transparent rounded-full animate-spin" />
+                        <span>Saving to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <span>{editingEmployee ? 'Update Details' : 'Register Employee'}</span>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -703,6 +734,52 @@ export const EmployeeManager: React.FC = () => {
                 }`}
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog for Permanent Employee Deletion */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-3xl p-6 glass-panel border border-rose-500/30 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white font-display mb-2">
+              Delete Employee?
+            </h3>
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+              Are you sure you want to permanently delete{' '}
+              <span className="font-semibold text-white">{confirmDelete.fullName}</span>?
+              <span className="block mt-2 text-xs text-rose-400 font-medium">
+                This action is permanent and removes their profile, photo, and directory records.
+              </span>
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteEmployee}
+                className="px-5 py-2.5 rounded-xl font-bold text-sm bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Permanently</span>
+                )}
               </button>
             </div>
           </div>

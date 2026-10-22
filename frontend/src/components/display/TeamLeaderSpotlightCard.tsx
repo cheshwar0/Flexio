@@ -267,11 +267,6 @@ export const TeamLeaderSpotlightCard: React.FC<TeamLeaderSpotlightCardProps> = (
                   <span>WINNING TEAM: {winner?.teamName}</span>
                 </span>
 
-                {leader?.employeeId && (
-                  <span className="px-3 py-1.5 rounded-full bg-navy-900/90 border border-slate-700/80 text-amber-300/90 text-xs sm:text-sm font-mono font-bold tracking-wider shadow-sm">
-                    {leader.employeeId}
-                  </span>
-                )}
               </div>
 
               {/* Full Name */}

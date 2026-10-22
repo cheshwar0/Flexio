@@ -110,12 +110,6 @@ export const PerformerCard: React.FC<PerformerCardProps> = ({ performer, isFirst
             <span className="mt-2 text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30">
               {performer.team || department}
             </span>
-
-            {employeeId && (
-              <span className="mt-1 text-[10px] font-mono font-medium text-slate-400 tracking-wider">
-                {employeeId}
-              </span>
-            )}
           </div>
         </div>
 

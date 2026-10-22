@@ -4,6 +4,7 @@ import {
   getEmployeeById,
   createEmployee,
   updateEmployee,
+  deleteEmployee,
   toggleEmployeeStatus,
   uploadEmployeePhoto,
   bulkImportEmployees,
@@ -23,6 +24,7 @@ router.post('/bulk-import', bulkImportEmployees);
 router.get('/:id', getEmployeeById);
 router.post('/', createEmployee);
 router.put('/:id', updateEmployee);
+router.delete('/:id', deleteEmployee);
 router.patch('/:id/toggle-status', toggleEmployeeStatus);
 router.post('/:id/photo', upload.single('photo'), uploadEmployeePhoto);
 

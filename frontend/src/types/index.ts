@@ -3,6 +3,7 @@ export interface Performer {
   employeeId: string;
   fullName: string;
   team: string;
+  teamSlogan?: string;
   designation: string;
   department?: string;
   imageUrl: string;
@@ -106,6 +107,7 @@ export interface Team {
   slotNumber: number;
   name: string;
   description?: string;
+  slogan?: string;
   teamLeaderEmployeeId?: string | null;
   active?: boolean;
   teamLeader?: {

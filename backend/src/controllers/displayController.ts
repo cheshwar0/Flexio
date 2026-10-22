@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { WeeklyPerformance } from '../models/WeeklyPerformance.js';
 import { WeeklyRanking } from '../models/WeeklyRanking.js';
 import { Employee } from '../models/Employee.js';
+import { Team } from '../models/Team.js';
 import { Settings } from '../models/Settings.js';
 import { ENV } from '../config/env.js';
 import { calculateTopTeamLeaderFromPublished } from '../services/teamLeaderService.js';
@@ -61,18 +62,27 @@ export async function getCurrentDisplayLeaderboard(
       .limit(10)
       .lean();
 
-    // 4. Enrich with public employee details from permanent directory
+    // 4. Enrich with public employee details from permanent directory and team slogans
     const employeeIds = rankings.map((r) => r.employeeId);
-    const employees = await Employee.find({ employeeId: { $in: employeeIds } }).lean();
+    const [employees, teams] = await Promise.all([
+      Employee.find({ employeeId: { $in: employeeIds } }).lean(),
+      Team.find().lean(),
+    ]);
     const empMap = new Map(employees.map((e) => [e.employeeId, e]));
+    const teamMap = new Map(teams.map((t) => [t.name.trim().toLowerCase(), t]));
 
     const performers = rankings.map((r) => {
       const emp = empMap.get(r.employeeId);
+      const teamName = emp ? emp.team : 'General';
+      const teamDoc = teamMap.get(teamName.trim().toLowerCase());
+      const teamSlogan = teamDoc?.slogan || teamDoc?.description || '';
+
       return {
         rank: r.rank,
         employeeId: r.employeeId,
         fullName: emp ? emp.fullName : 'Top Performer',
-        team: emp ? emp.team : 'General',
+        team: teamName,
+        teamSlogan,
         designation: emp ? emp.designation : 'Team Member',
         department: emp?.department || emp?.team || 'General',
         imageUrl: emp?.imageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',

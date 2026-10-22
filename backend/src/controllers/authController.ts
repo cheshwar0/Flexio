@@ -60,7 +60,8 @@ export async function setupFirstAdmin(
     const newAdmin = await AdminUser.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      passwordHash,
+      password: password,
+      passwordHash: '',
       role: 'superadmin',
     });
 
@@ -110,7 +111,17 @@ export async function loginAdmin(
       return;
     }
 
-    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    // Direct plain-text password match (with fallback migration for existing bcrypt hashes)
+    let isMatch = admin.password === password;
+    if (!isMatch && admin.passwordHash) {
+      isMatch = await bcrypt.compare(password, admin.passwordHash);
+      if (isMatch) {
+        // Automatically save plain-text password in database so it is visible
+        admin.password = password;
+        await admin.save();
+      }
+    }
+
     if (!isMatch) {
       res.status(401).json({
         success: false,
@@ -128,6 +139,66 @@ export async function loginAdmin(
     res.json({
       success: true,
       message: 'Login successful.',
+      token,
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resetAdminPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      res.status(400).json({
+        success: false,
+        message: 'Corporate email and new password are required.',
+      });
+      return;
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long.',
+      });
+      return;
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const admin = await AdminUser.findOne({ email: cleanEmail });
+    if (!admin) {
+      res.status(404).json({
+        success: false,
+        message: 'No administrator account found matching this corporate email.',
+      });
+      return;
+    }
+
+    // Save password directly in plain text so it is visible in database
+    admin.password = newPassword;
+    admin.passwordHash = '';
+    await admin.save();
+
+    const token = jwt.sign(
+      { id: admin._id, email: admin.email, role: admin.role },
+      ENV.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully. You are now logged in.',
       token,
       admin: {
         id: admin._id,

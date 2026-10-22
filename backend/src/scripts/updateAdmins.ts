@@ -36,25 +36,21 @@ async function updateAdminCredentials() {
     });
     console.log(`Removed ${deleteResult.deletedCount} old admin accounts.`);
 
-    // 2. Upsert each allowed admin with fresh bcrypt hash
+    // 2. Upsert each allowed admin with plain-text password
     for (const admin of allowedAdmins) {
-      const salt = await bcrypt.genSalt(12);
-      const passwordHash = await bcrypt.hash(admin.password, salt);
-
       const updated = await AdminUser.findOneAndUpdate(
         { email: admin.email.toLowerCase() },
         {
           name: admin.name,
           email: admin.email.toLowerCase(),
-          passwordHash,
+          password: admin.password,
+          passwordHash: '',
           role: admin.role,
         },
         { upsert: true, new: true }
       );
 
-      // Verify the password immediately
-      const isMatch = await bcrypt.compare(admin.password, updated.passwordHash);
-      console.log(`Admin account [${admin.email}] updated. Password verification: ${isMatch ? 'SUCCESS' : 'FAILED'}`);
+      console.log(`Admin account [${admin.email}] updated with plain-text password: ${updated?.password}`);
     }
 
     // 3. Output current admin users in database

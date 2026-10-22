@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Employee } from '../models/Employee.js';
 import { Team } from '../models/Team.js';
+import { WeeklyRanking } from '../models/WeeklyRanking.js';
 import { uploadEmployeeImage, deleteCloudinaryImage } from '../services/cloudinaryService.js';
 
 /**
@@ -84,14 +85,26 @@ export async function createEmployee(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { employeeId, fullName, team, designation, department, imageUrl } = req.body;
+    let { employeeId, fullName, team, designation, department, imageUrl } = req.body;
 
-    if (!employeeId || !fullName || !team || !designation) {
+    if (!fullName || !team || !designation) {
       res.status(400).json({
         success: false,
-        message: 'Employee ID, full name, team, and designation are required.',
+        message: 'Full name, team, and designation are required.',
       });
       return;
+    }
+
+    // Auto-generate employeeId behind the scenes if not provided in form
+    let cleanId = employeeId ? employeeId.trim().toUpperCase() : '';
+    if (!cleanId) {
+      const count = await Employee.countDocuments();
+      let candidateNum = 1001 + count;
+      cleanId = `EMP-${candidateNum}`;
+      while (await Employee.findOne({ employeeId: cleanId })) {
+        candidateNum++;
+        cleanId = `EMP-${candidateNum}`;
+      }
     }
 
     // Validate team against configured 8 teams
@@ -107,7 +120,6 @@ export async function createEmployee(
       }
     }
 
-    const cleanId = employeeId.trim().toUpperCase();
     const existing = await Employee.findOne({ employeeId: cleanId });
     if (existing) {
       res.status(400).json({
@@ -146,12 +158,40 @@ export async function updateEmployee(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const { fullName, team, designation, department, active, imageUrl } = req.body;
+    const { employeeId, fullName, team, designation, department, active, imageUrl } = req.body;
 
     const employee = await Employee.findById(id);
     if (!employee) {
       res.status(404).json({ success: false, message: 'Employee not found.' });
       return;
+    }
+
+    const oldEmployeeId = employee.employeeId;
+
+    if (employeeId !== undefined && employeeId.trim() !== '') {
+      const cleanId = employeeId.trim().toUpperCase();
+      if (cleanId !== oldEmployeeId) {
+        const existing = await Employee.findOne({ employeeId: cleanId, _id: { $ne: id } });
+        if (existing) {
+          res.status(400).json({
+            success: false,
+            message: `Employee ID "${cleanId}" is already registered to another employee.`,
+          });
+          return;
+        }
+
+        employee.employeeId = cleanId;
+
+        // Cascade update references in Team and WeeklyRanking
+        await Team.updateMany(
+          { teamLeaderEmployeeId: oldEmployeeId },
+          { $set: { teamLeaderEmployeeId: cleanId } }
+        );
+        await WeeklyRanking.updateMany(
+          { employeeId: oldEmployeeId },
+          { $set: { employeeId: cleanId } }
+        );
+      }
     }
 
     if (team) {
@@ -182,6 +222,49 @@ export async function updateEmployee(
       success: true,
       message: 'Employee details updated successfully.',
       employee,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteEmployee(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    const employee = await Employee.findById(id);
+    if (!employee) {
+      res.status(404).json({ success: false, message: 'Employee not found.' });
+      return;
+    }
+
+    // Clean up Cloudinary image if present
+    if (employee.cloudinaryPublicId) {
+      try {
+        await deleteCloudinaryImage(employee.cloudinaryPublicId);
+      } catch (cloudErr) {
+        console.warn('Failed to delete Cloudinary photo for employee:', cloudErr);
+      }
+    }
+
+    // Unlink from any teams where this employee was team leader
+    await Team.updateMany(
+      { teamLeaderEmployeeId: employee.employeeId },
+      { $set: { teamLeaderEmployeeId: null } }
+    );
+
+    // Remove any weekly rankings for this employee
+    await WeeklyRanking.deleteMany({ employeeId: employee.employeeId });
+
+    // Permanently remove employee
+    await Employee.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: `Employee "${employee.fullName}" (${employee.employeeId}) permanently deleted.`,
     });
   } catch (err) {
     next(err);
@@ -289,12 +372,20 @@ export async function bulkImportEmployees(
       const row = batch[i];
       const rowNum = i + 1;
 
-      if (!row.employeeId || !row.fullName || !row.team || !row.designation) {
-        errors.push(`Row ${rowNum}: Missing required fields (Employee ID, Full Name, Team, or Designation).`);
+      if (!row.fullName || !row.team || !row.designation) {
+        errors.push(`Row ${rowNum}: Missing required fields (Full Name, Team, or Designation).`);
         continue;
       }
 
-      const cleanId = String(row.employeeId).trim().toUpperCase();
+      let cleanId = row.employeeId ? String(row.employeeId).trim().toUpperCase() : '';
+      if (!cleanId) {
+        let candidateNum = 1001 + existingEmployees.length + validDocs.length;
+        cleanId = `EMP-${candidateNum}`;
+        while (existingIdSet.has(cleanId) || batchIdSet.has(cleanId)) {
+          candidateNum++;
+          cleanId = `EMP-${candidateNum}`;
+        }
+      }
 
       if (batchIdSet.has(cleanId)) {
         errors.push(`Row ${rowNum}: Duplicate Employee ID "${cleanId}" within CSV import file.`);
@@ -303,14 +394,14 @@ export async function bulkImportEmployees(
       batchIdSet.add(cleanId);
 
       if (existingIdSet.has(cleanId)) {
-        errors.push(`Row ${rowNum}: Employee ID "${cleanId}" is already registered in permanent directory.`);
+        errors.push(`Row ${rowNum}: Employee "${row.fullName}" ID "${cleanId}" is already registered in permanent directory.`);
         continue;
       }
 
       const teamKey = String(row.team).trim().toLowerCase();
       if (validTeamMap.size > 0 && !validTeamMap.has(teamKey)) {
         errors.push(
-          `Row ${rowNum} (${cleanId}): Team "${row.team}" is not one of the company's 8 configured teams.`
+          `Row ${rowNum}: Team "${row.team}" is not one of the company's 8 configured teams.`
         );
         continue;
       }
@@ -347,9 +438,9 @@ export async function bulkImportEmployees(
 }
 
 export function getCsvTemplate(req: Request, res: Response): void {
-  const headers = 'employeeId,fullName,team,designation,department,imageUrl\n';
-  const sample1 = 'EMP-2001,Sarah Jenkins,Engineering,Senior Backend Engineer,Engineering,https://images.unsplash.com/photo-1573496359142-b8d87734a5a2\n';
-  const sample2 = 'EMP-2002,Michael Chang,Sales & Revenue,Account Executive,Sales,\n';
+  const headers = 'fullName,team,designation,department,imageUrl\n';
+  const sample1 = 'Sarah Jenkins,Alpha,Senior Backend Engineer,Alpha,https://images.unsplash.com/photo-1573496359142-b8d87734a5a2\n';
+  const sample2 = 'Michael Chang,Beta,Account Executive,Beta,\n';
   const csvContent = headers + sample1 + sample2;
 
   res.setHeader('Content-Type', 'text/csv');

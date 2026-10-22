@@ -67,15 +67,18 @@ export async function authenticateAdminWriteOperations(
     return next();
   }
 
-  // Exempt public authentication endpoints (login and first-admin initialization)
+  // Exempt public authentication endpoints (login, first-admin initialization, and password reset)
   const fullPath = (req.originalUrl || req.path).split('?')[0];
   if (
     fullPath === '/api/auth/login' ||
     fullPath === '/api/auth/setup' ||
+    fullPath === '/api/auth/reset-password' ||
     req.path === '/auth/login' ||
     req.path === '/auth/setup' ||
+    req.path === '/auth/reset-password' ||
     req.path === '/login' ||
-    req.path === '/setup'
+    req.path === '/setup' ||
+    req.path === '/reset-password'
   ) {
     return next();
   }

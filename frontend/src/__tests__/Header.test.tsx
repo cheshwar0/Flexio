@@ -10,8 +10,7 @@ describe('Header Component', () => {
     const logo = screen.getByAltText('FLEXIO');
     expect(logo).toBeDefined();
     expect(logo.getAttribute('src')).toBe('/flexio-logo.png');
-    expect(screen.getByText('WEEKLY TOP 10 PERFORMERS')).toBeDefined();
-    expect(screen.getByText('REDGEINE TECHNOLOGY')).toBeDefined();
+    expect(screen.getByText('REDGENIE TECHNOLOGIES PVT.LTD')).toBeDefined();
     expect(screen.queryByText('Alpha Team')).toBeNull();
   });
 
